@@ -121,5 +121,21 @@ input.txt{background:var(--card2);border:1px solid var(--line);color:var(--ink);
 footer.ft{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-size:13.5px;background:var(--bg2)}
 footer.ft .wrap{display:flex;gap:20px;flex-wrap:wrap;justify-content:space-between}
 mark{background:var(--gold);color:#000;border-radius:3px}
+/* account, exam bar, toast */
+.ib.acct{display:grid;place-items:center;overflow:hidden;text-decoration:none;padding:0}
+.ib.acct img{width:100%;height:100%;object-fit:cover}
+.ib.acct span{font-weight:700;font-size:15px}
+.ib.acct.in{border-color:var(--teal)}
+.acct .who{display:flex;gap:14px;align-items:center;margin-bottom:10px}
+.acct .who img,.acct .ini{width:56px;height:56px;border-radius:50%;flex:none}
+.acct .ini{display:grid;place-items:center;background:var(--acc);color:#fff;font-weight:700;font-size:22px}
+.gsi{min-height:44px;margin:10px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row .txt{flex:1 1 220px}
+.exbar{position:sticky;top:110px;z-index:5;display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;align-items:center;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 16px;margin-bottom:14px;box-shadow:var(--shadow)}
+@media(max-width:760px){.exbar{top:68px}}
+#exTime.low{color:var(--bad)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:12px;max-width:min(92vw,520px);text-align:center;z-index:200;transition:.25s;box-shadow:var(--shadow)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 @media print{.top,footer.ft,.noprint,.skip{display:none!important}body{background:#fff}.cert{border-color:#9c1c2c;margin:0 auto}}
