@@ -139,6 +139,7 @@
   const t = (k, ...a) => { const v = (S[lang] && S[lang][k] !== undefined) ? S[lang][k] : S.en[k]; return typeof v === 'function' ? v(...a.map(x => typeof x === 'number' ? num(x) : x)) : v; };
   // account, sync, official exam and verified certificates
   Object.assign(S.en, {
+    capNote: d => `Tick each deliverable as you complete it. Complete every deliverable and score ${d}%+ in the official exam to earn your certificate with Distinction.`,
     account: 'Account', signIn: 'Sign in', acctTitle: 'Keep your progress on every device', yourAccount: 'Your account',
     acctLead: 'Signing in is optional. With a Google account, your lessons, exam record and certificate follow you to any phone or computer. Without it, everything stays in this browser only.',
     acctIn: 'Your TOT-IHL progress is saved to your account and kept in sync on every device where you sign in.',
@@ -167,6 +168,7 @@
     vName: 'Name', vCert: 'Certificate', vIssued: 'Issued', vScore: 'Exam score', restore: 'Already certified on another device? Restore it with your credential ID.', restoreBtn: 'Restore', restored: id => `Restored certificate ${id}.`, otherTrack: d => `That ID belongs to another course. Open ${d} to see it.`
   });
   Object.assign(S.bn, {
+    capNote: d => `প্রতিটি কাজ শেষ হলে টিক দিন। সব কাজ সম্পন্ন করে অফিসিয়াল পরীক্ষায় ${d}% বা বেশি পেলে বিশেষ কৃতিত্বসহ সনদ পাবেন।`,
     account: 'অ্যাকাউন্ট', signIn: 'সাইন ইন', acctTitle: 'সব ডিভাইসে আপনার অগ্রগতি রাখুন', yourAccount: 'আপনার অ্যাকাউন্ট',
     acctLead: 'সাইন ইন ঐচ্ছিক। Google অ্যাকাউন্ট দিয়ে সাইন ইন করলে আপনার পাঠ, পরীক্ষার রেকর্ড ও সনদ যেকোনো ফোন বা কম্পিউটারে পাবেন। সাইন ইন না করলে সবকিছু কেবল এই ব্রাউজারেই থাকবে।',
     acctIn: 'আপনার TOT-IHL অগ্রগতি আপনার অ্যাকাউন্টে সংরক্ষিত হয় এবং যেসব ডিভাইসে সাইন ইন করবেন সেখানে সিঙ্ক থাকে।',
@@ -195,6 +197,7 @@
     vName: 'নাম', vCert: 'সনদ', vIssued: 'প্রদানের তারিখ', vScore: 'পরীক্ষার স্কোর', restore: 'অন্য ডিভাইসে ইতিমধ্যে সনদ পেয়েছেন? ক্রেডেনশিয়াল আইডি দিয়ে পুনরুদ্ধার করুন।', restoreBtn: 'পুনরুদ্ধার', restored: id => `সনদ ${id} পুনরুদ্ধার হয়েছে।`, otherTrack: d => `এই আইডি অন্য কোর্সের। দেখতে ${d} খুলুন।`
   });
   Object.assign(S.fr, {
+    capNote: d => `Cochez chaque livrable une fois terminé. Terminez tous les livrables et obtenez au moins ${d} % à l’examen officiel pour recevoir votre certificat avec mention.`,
     account: 'Compte', signIn: 'Se connecter', acctTitle: 'Retrouvez votre progression sur tous vos appareils', yourAccount: 'Votre compte',
     acctLead: 'La connexion est facultative. Avec un compte Google, vos leçons, votre dossier d’examen et votre certificat vous suivent sur n’importe quel téléphone ou ordinateur. Sans connexion, tout reste dans ce navigateur.',
     acctIn: 'Votre progression TOT-IHL est enregistrée dans votre compte et synchronisée sur chaque appareil où vous vous connectez.',

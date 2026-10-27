@@ -16,6 +16,7 @@ function normalize(s){
   Object.keys(s.done).forEach(k=>{if(!ids.has(k))delete s.done[k]});
   s.best=Math.max(0,Math.min(100,+s.best||0));
   const o=s.off&&typeof s.off==='object'?s.off:{};
+  if(!s.cap||typeof s.cap!=='object')s.cap={};
   s.off={attempts:+o.attempts||0,best:+o.best||0,history:Array.isArray(o.history)?o.history.filter(h=>h&&typeof h==='object').slice(-60):[],
     passed:o.passed&&typeof o.passed==='object'&&o.passed.id?o.passed:null,unclaimed:o.unclaimed&&typeof o.unclaimed.attempt==='string'?o.unclaimed:null};
   return s;
@@ -61,6 +62,7 @@ function merge(L,R){
   const seen=new Set();E.history=E.history.concat(O.history).filter(h=>{const k=h.date+'|'+h.score;if(seen.has(k))return false;seen.add(k);return true}).slice(-60);
   const rank=p=>p?(p.distinction?1000:0)+(+p.score||0):-1;if(rank(O.passed)>rank(E.passed))E.passed=O.passed;
   if(!E.unclaimed&&O.unclaimed)E.unclaimed=O.unclaimed;if(E.unclaimed&&E.passed&&(E.unclaimed.attempt===E.passed.attempt||E.unclaimed.score<=E.passed.score))E.unclaimed=null;
+  Object.keys(older.cap).forEach(k=>{if(!(k in out.cap))out.cap[k]=older.cap[k]});
   ['name','certTs','certId'].forEach(k=>{if(!out[k]&&older[k])out[k]=older[k]});out._t=Math.max(L._t||0,R._t||0);return out;
 }
 async function pullProgress(quiet){
@@ -246,14 +248,15 @@ function startPractice(){
     const s=Math.round(100*c/set.length);st.best=Math.max(st.best||0,s);save();bar();
     $('#xres').innerHTML=`<div class="callout ${s>=M.passMark?'new':'red'}"><b class="h">${t('score')}: ${n(s)}% (${n(c)}/${n(set.length)})</b>${s>=M.distinctionMark?t('distinction'):s>=M.passMark?t('passed'):t('notYet')}<a href="#certificate">${t('certLink')}</a></div>`;$('#xres').scrollIntoView({behavior:'smooth'})};
 }
-function capstone(){const c=M.capstone;return `<section class="pg wrap"><h1>${esc(c.title)}</h1><div class="card">${c.brief}<h3>${t('deliverables')}</h3><ol>${c.deliverables.map(d=>`<li>${esc(d)}</li>`).join('')}</ol><h3>${t('rubric')}</h3><div class="tw"><table><tr><th>${t('criterion')}</th><th>${t('developing')}</th><th>${t('proficient')}</th><th>${t('distinguished')}</th></tr>${c.rubric.map(r=>`<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td></tr>`).join('')}</table></div></div></section>`}
+const capDone=()=>M.capstone.deliverables.every((_,i)=>st.cap[i]);
+function capstone(){const c=M.capstone,d=c.deliverables.filter((_,i)=>st.cap[i]).length;return `<section class="pg wrap"><h1>${esc(c.title)}</h1><div class="card">${c.brief}<h3>${t('deliverables')} · ${n(d)}/${n(c.deliverables.length)}</h3><div class="caplist">${c.deliverables.map((x,i)=>`<label class="opt"><input type="checkbox" data-cap="${i}" ${st.cap[i]?'checked':''}> ${esc(x)}</label>`).join('')}</div><p class="muted">${t('capNote',M.distinctionMark)}</p><h3>${t('rubric')}</h3><div class="tw"><table><tr><th>${t('criterion')}</th><th>${t('developing')}</th><th>${t('proficient')}</th><th>${t('distinguished')}</th></tr>${c.rubric.map(r=>`<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td></tr>`).join('')}</table></div></div></section>`}
 
 /* ---------- certificates ---------- */
 const claimHTML=()=>`<div class="card" id="claimBox" style="margin:16px 0"><div class="kick">${t('claimH')}</div><p>${t('claimP')}</p><form id="claimForm" class="row"><input class="txt" id="claimName" maxlength="80" autocomplete="name" required value="${esc(st.name||(AUTH&&AUTH.user&&AUTH.user.name)||'')}" placeholder="${t('namePh')}"> <button type="submit" class="btn">${t('claimBtn')}</button></form></div>`;
 function wireClaim(){const f=$('#claimForm');if(!f)return;f.onsubmit=async e=>{e.preventDefault();const U=st.off.unclaimed;if(!U)return;
   const name=$('#claimName').value.replace(/\s+/g,' ').trim();if(name.length<2){$('#claimName').focus();return}
   const b=f.querySelector('button');b.disabled=true;b.textContent=t('issuing');
-  try{const c=await api('/v1/cert/claim',{attempt:U.attempt,name,capstone:false});st.name=c.name;st.off.passed={id:c.id,date:c.date,score:c.score,name:c.name,distinction:!!c.distinction,attempt:U.attempt};st.off.unclaimed=null;save();toast(t('issued',c.id),5000);location.hash='#certificate';route()}
+  try{const c=await api('/v1/cert/claim',{attempt:U.attempt,name,capstone:capDone()});st.name=c.name;st.off.passed={id:c.id,date:c.date,score:c.score,name:c.name,distinction:!!c.distinction,attempt:U.attempt};st.off.unclaimed=null;save();toast(t('issued',c.id),5000);location.hash='#certificate';route()}
   catch(e){toast(e.message,7000);if([403,404,410].includes(e.status)){st.off.unclaimed=null;save();route()}else{b.disabled=false;b.textContent=t('claimBtn')}}}}
 const certFrame=(name,score,date,id,verified)=>`<div class="cert"><div class="cert-k">${t('certAcademy')}</div><h2>${t('certOf')}</h2><p>${t('certifies')}</p><div class="nm">${esc(name)}</div><p>${t('completedThe')}</p><h3>${esc(M.full)}</h3><p class="cert-s">${esc(M.certificate)}</p><p><b>${score>=M.distinctionMark?t('withDist'):''}${t('examScore',score)}</b></p><p style="margin-top:30px">${esc(date)}<br><small>${t('certId')}: ${esc(id)}</small></p><p style="margin-top:24px"><i class="sig">Zyeem Bin Zia</i><br><small>${t('ceo')}</small></p><div class="seal">${verified?'✓<br>':''}IHL<br>TOT</div><p class="cert-v">${verified?`${t('verifyAt')} totihl.zyeemzia.com/#verify/${esc(id)}`:t('verifyNote')}</p></div>`;
 function certId(){
@@ -342,6 +345,7 @@ function route(){
   const d=$('#done');if(d)d.onclick=()=>{st.done[d.dataset.id]=1;save();const i=all.findIndex(l=>l.id===d.dataset.id);const nx=all[i+1];if(nx)location.hash='#lesson/'+nx.id;else route()};
   if(r==='exam'){if(EX&&!EX.done)wireOfficial();else{if($('#startx'))$('#startx').onclick=startPractice;if($('#offstart'))$('#offstart').onclick=officialStart}}
   if(r==='certificate')wireCert();
+  if(r==='capstone')view.querySelectorAll('[data-cap]').forEach(b=>b.onchange=()=>{st.cap[b.dataset.cap]=b.checked;save();const h=b.closest('.card').querySelector('h3');const c=M.capstone.deliverables;h.textContent=`${t('deliverables')} · ${n(c.filter((_,i)=>st.cap[i]).length)}/${n(c.length)}`});
   if(r==='account')mountAccount();
   if(r==='verify'){$('#vForm').onsubmit=e=>{e.preventDefault();const v=$('#vId').value.trim();history.replaceState(null,'','#verify/'+encodeURIComponent(v));runVerify(v)};if(arg)runVerify(arg)}
   document.title=(r==='lesson'&&all.find(l=>l.id===arg)?all.find(l=>l.id===arg).title+' · ':'')+M.full;
