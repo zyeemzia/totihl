@@ -26,7 +26,7 @@
       source: 'Source material', markComplete: 'Mark complete', completed: '✓ Completed', goExam: 'Go to exam',
       wsTitle: 'Workshops & syndicate exercises', wsLead: 'Practical, trainer-led exercises from the BIPSOT Training of Trainers. Work in syndicates, then open the model answers.', workshop: 'WORKSHOP',
       modelAnswers: 'Model answers & debrief points', flashcards: 'Flashcards', prev: '‹ Prev', next: 'Next ›', shuffle: 'Shuffle', flipHint: 'Tap the card to flip it',
-      examTitle: 'Certification exam', examLead: (n, b, p, d) => `${n} random questions from a ${b}-question bank. Pass mark ${p}% · Distinction ${d}%.`, best: 'Best score',
+      examTitle: 'Certification exam', examLead: (n, b, p, d) => `${n} random questions from a bank of ${b}. Pass mark ${p}% · Distinction ${d}%.`, best: 'Best score',
       startExam: 'Start a new exam', submitExam: 'Submit exam', answered: (a, n) => `${a} of ${n} answered`, unanswered: n => `${n} question(s) still unanswered. Submit anyway?`,
       score: 'Score', distinction: 'Distinction! ', passed: 'Passed. ', notYet: 'Not yet — review and retry. ', correctIs: 'Correct answer: ', certLink: 'Certificate ›',
       deliverables: 'Deliverables', rubric: 'Assessment rubric', criterion: 'Criterion', developing: 'Developing', proficient: 'Proficient', distinguished: 'Distinguished',

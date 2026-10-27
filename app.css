@@ -2,13 +2,16 @@
 .skip{position:absolute;left:-999px;top:8px;z-index:100;background:var(--acc);color:#fff;padding:8px 14px;border-radius:8px}
 .skip:focus{left:8px}
 .top{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-.top .wrap{display:flex;align-items:center;gap:12px;height:64px}
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);min-width:0}
+.top .wrap{display:flex;align-items:center;gap:12px;min-height:64px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);min-width:0;flex:0 1 auto;margin-right:auto;overflow:hidden}
+.brand>span:last-child{min-width:0;overflow:hidden}
 .logo{width:42px;height:42px;border-radius:10px;background:#fff;color:var(--acc);border:2px solid var(--acc);display:grid;place-items:center;font:800 11px/1 Fraunces,serif;text-align:center;flex:none}
 .brand b{font:700 15px/1.1 Fraunces,serif;display:block;white-space:nowrap}
 .brand small{font:11px 'JetBrains Mono',monospace;color:var(--mut)}
-nav.main{display:flex;gap:2px;margin-left:auto;align-items:center}
-nav.main a{padding:7px 10px;border-radius:9px;color:var(--mut);text-decoration:none;font-weight:500;font-size:14px;white-space:nowrap}
+/* second header row: the full menu, always on its own line on desktop so nothing can overlap */
+nav.main{display:flex;gap:4px;align-items:center;order:3;flex:1 0 100%;border-top:1px solid var(--line);padding:6px 0;overflow-x:auto;scrollbar-width:none}
+nav.main::-webkit-scrollbar{display:none}
+nav.main a{padding:7px 12px;border-radius:9px;color:var(--mut);text-decoration:none;font-weight:500;font-size:14px;white-space:nowrap;flex:none}
 nav.main a.on,nav.main a:hover{background:var(--card2);color:var(--ink)}
 .tools{display:flex;gap:8px;align-items:center;flex:none}
 .search{background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:20px;padding:7px 14px;width:150px;font:inherit;font-size:13px}
@@ -18,7 +21,7 @@ nav.main a.on,nav.main a:hover{background:var(--card2);color:var(--ink)}
 .pbar{width:80px;height:8px;background:var(--card2);border-radius:9px;overflow:hidden}
 .pbar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--gold));width:0;transition:width .3s}
 .menu{display:none}
-@media(max-width:1180px){nav.main{display:none;position:absolute;top:64px;left:0;right:0;flex-direction:column;align-items:stretch;background:var(--bg2);padding:10px 16px;border-bottom:1px solid var(--line);box-shadow:var(--shadow)}nav.main.open{display:flex}nav.main .msearch{display:block;width:100%;margin-top:8px}.menu{display:block}.tools .search,.pbar{display:none}}
+@media(max-width:760px){nav.main{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;background:var(--bg2);padding:10px 16px;border-bottom:1px solid var(--line);box-shadow:var(--shadow);overflow:visible}nav.main.open{display:flex}nav.main .msearch{display:block;width:100%;margin-top:8px}.menu{display:block}.tools .search,.pbar{display:none}.top{position:sticky}.top .wrap{position:relative;flex-wrap:nowrap}}
 @media(max-width:520px){.brand>span:last-child{display:none}.tools{margin-left:auto}#pct{display:none}.tools{gap:6px}.langsel{max-width:86px;padding:6px 6px}}
 :focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 /* generic */
@@ -53,7 +56,7 @@ h2.sec{font-size:28px;margin-top:44px}
 img,svg{max-width:100%}
 /* lesson */
 .lay{display:grid;grid-template-columns:280px minmax(0,1fr);gap:26px}
-.side{position:sticky;top:80px;align-self:start;max-height:calc(100vh - 100px);overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.side{position:sticky;top:124px;align-self:start;max-height:calc(100vh - 140px);overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px}
 .side a{display:block;padding:6px 9px;border-radius:8px;color:var(--mut);text-decoration:none;font-size:13.5px}
 .side a.on{background:var(--card2);color:var(--ink)}
 .side a.done::before{content:'\2713  ';color:var(--teal)}
@@ -70,7 +73,8 @@ article.lesson h3{margin-top:1.6em;color:var(--teal)}
 html[lang="bn"] .callout b.h{font-family:'Noto Serif Bengali',serif}
 table{border-collapse:collapse;width:100%;font-size:14.5px;margin:14px 0}
 th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
-th{background:var(--card2)}
+th{background:var(--card2);overflow-wrap:normal;word-break:keep-all;hyphens:none}
+[id]{scroll-margin-top:130px}
 .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tw table{min-width:520px}
 .keys{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));margin:14px 0}
