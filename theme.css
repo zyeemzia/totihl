@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@600;700&display=swap');
 /* Humanitarian theme: Geneva red, protective white, UN/field navy, parchment of the Conventions */
 :root{
   --bg:#0b1220;--bg2:#0f1828;--card:#131e31;--card2:#18263d;--line:#243653;--ink:#eef2f8;--mut:#9fb0c9;
@@ -24,3 +24,7 @@ h1,h2,h3,h4{font-family:Fraunces,Georgia,serif;line-height:1.2;margin:.2em 0 .5e
 a{color:var(--teal)}
 .mono{font-family:'JetBrains Mono',monospace}
 .wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+/* Bangla: fonts with full conjunct support and a little more line height */
+html[lang="bn"] body{font-family:'Noto Sans Bengali',Inter,system-ui,sans-serif;line-height:1.8}
+html[lang="bn"] h1,html[lang="bn"] h2,html[lang="bn"] h3,html[lang="bn"] h4{font-family:'Noto Serif Bengali',Fraunces,serif;line-height:1.35}
+html[lang="bn"] .kick,html[lang="bn"] .num,html[lang="bn"] .chap{letter-spacing:.04em;font-family:'Noto Sans Bengali','JetBrains Mono',monospace}

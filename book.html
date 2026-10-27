@@ -3,24 +3,28 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>The TOT-IHL Book · ZyeemZia™</title>
-<meta name="description" content="The complete ZyeemZia™ Training of Trainers on International Humanitarian Law course book: every lesson, workshops with model answers, practice exam, glossary and trainer's toolkit.">
+<meta name="description" content="The complete ZyeemZia™ Training of Trainers on International Humanitarian Law course book in English, Bangla and French: every lesson, workshops with model answers, practice exam, glossary and trainer's toolkit.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='white'/%3E%3Cpath d='M12 5h8v7h7v8h-7v7h-8v-7H5v-8h7z' fill='%23e0242f'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="theme.css"><link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="theme.css?v=3"><link rel="stylesheet" href="app.css?v=3">
+<script src="i18n.js?v=3"></script>
 <style>
 body{background:var(--bg)}
-.bar{position:sticky;top:0;z-index:5;display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--line)}
+.bar{position:sticky;top:0;z-index:5;display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.bar .r{display:flex;gap:8px;align-items:center}
 .book{max-width:860px;margin:0 auto;padding:0 16px 80px}
-.page{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:56px 60px;margin:28px 0;box-shadow:var(--shadow)}
-@media(max-width:700px){.page{padding:26px 20px}}
+.page{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:56px 60px;margin:28px 0;box-shadow:var(--shadow);overflow-wrap:anywhere}
+@media(max-width:700px){.page{padding:26px 18px}.bar b{display:none}}
 .cover{min-height:88vh;display:flex;flex-direction:column;justify-content:center;background:var(--hero);text-align:left}
 .cover h1{font-size:clamp(34px,6vw,58px);margin:.3em 0}
 .cover .shield{max-width:260px}
-.chap{font:600 12px 'JetBrains Mono';letter-spacing:.2em;color:var(--acc);text-transform:uppercase}
+.chap{font:600 12px 'JetBrains Mono',monospace;letter-spacing:.2em;color:var(--acc);text-transform:uppercase}
 .book h2{font-size:34px}
 .book h3.lt{font-size:24px;border-top:2px solid var(--acc);padding-top:14px;margin-top:40px;color:var(--ink)}
 .toc a{display:flex;justify-content:space-between;text-decoration:none;color:var(--ink);padding:5px 0;border-bottom:1px dotted var(--line)}
 .toc a.l{padding-left:20px;color:var(--mut);font-size:14px}
 .ans{font-size:14px;color:var(--mut)}
+.akey{columns:2;font-size:14px}
+@media(max-width:600px){.akey{columns:1}}
 @media print{
  .bar{display:none}.page{box-shadow:none;border:0;border-radius:0;margin:0;padding:18mm 16mm;page-break-after:always}
  body,.page,.cover{background:#fff!important;color:#000}
@@ -30,61 +34,56 @@ body{background:var(--bg)}
 </style>
 </head>
 <body>
-<div class="bar noprint"><a href="index.html" class="btn ghost sm">‹ Back to course</a><b class="mono" style="font-size:13px">THE TOT-IHL BOOK</b><span><button class="ib" id="theme" title="Theme">◐</button> <button class="btn sm" onclick="openAll();print()">⬇ Download PDF</button></span></div>
+<div class="bar noprint"><a href="index.html" class="btn ghost sm" id="backl">‹ Back to course</a><b class="mono" style="font-size:13px" id="bart">THE TOT-IHL BOOK</b><span class="r"><select id="lang" class="langsel" aria-label="Language"></select><button type="button" class="ib" id="theme" title="Theme" aria-label="Theme">◐</button><button type="button" class="btn sm" id="pdf">⬇ PDF</button></span></div>
 <div class="book" id="book"></div>
-<script src="data/track.js"></script><script src="data/workshops.js"></script>
-<script src="data/m1.js"></script><script src="data/m2.js"></script><script src="data/m3.js"></script><script src="data/m4.js"></script>
-<script src="data/m_ops.js"></script><script src="data/m6.js"></script><script src="data/m_pko.js"></script><script src="data/m_civ.js"></script>
-<script src="data/m7.js"></script><script src="data/m_tot.js"></script>
 <script>
-const T=TRACK,M=T.meta,esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function openAll(){document.querySelectorAll('details').forEach(d=>d.open=true)}
-document.getElementById('theme').onclick=()=>{const r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'};
-const yr=new Date().getFullYear();let h='';
-h+=`<section class="page cover"><div class="kick">ZyeemZia™ Academy · Course book · Trainer’s manual · Exam prep</div><h1>Training of Trainers on International Humanitarian Law</h1><p class="tag">${esc(M.tagline)}</p><div class="shield">${T.figure}</div><p class="muted">${esc(M.full)}<br>Edition ${yr} · totihl.zyeemzia.com<br>Developed & published by Zyeem Bin Zia · Dhaka, Bangladesh</p></section>`;
-let toc='<section class="page"><div class="chap">Contents</div><h2>Table of contents</h2><div class="toc"><a href="#intro"><span>How to use this book</span></a>';
-T.modules.forEach((m,i)=>{toc+=`<a href="#${m.id}"><span>Chapter ${i+1} · ${esc(m.title)}</span></a>`+m.lessons.map((l,j)=>`<a class="l" href="#b-${l.id}"><span>${i+1}.${j+1} ${esc(l.title)}</span></a>`).join('')});
-toc+=`<a href="#ws"><span>Workshops & syndicate exercises (with model answers)</span></a><a href="#cap"><span>Capstone</span></a><a href="#plan"><span>Two-day TOT programme & 6-week self-study plan</span></a><a href="#exam"><span>Practice exam with answers</span></a><a href="#glos"><span>Glossary</span></a><a href="#src"><span>Sources & further reading</span></a></div></section>`;
+['track','workshops','m1','m2','m3','m4','m_ops','m6','m_pko','m_civ','m7','m_tot'].forEach(function(f){document.write('<script src="'+ZZI18N.base+f+'.js?v=3"><\/script>')});
+</script>
+<script>
+(function(){
+const T=TRACK,M=T.meta,I=ZZI18N,t=I.t,n=I.num,esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const openAll=()=>document.querySelectorAll('details').forEach(d=>d.open=true);
+document.getElementById('backl').textContent=t('back');document.getElementById('bart').textContent=t('bookBar');
+document.getElementById('pdf').textContent='⬇ '+t('downloadPdf');document.getElementById('pdf').onclick=()=>{openAll();print()};
+const sel=document.getElementById('lang');sel.innerHTML=I.LANGS.map(l=>`<option value="${l}"${l===I.lang?' selected':''}>${I.names[l]}</option>`).join('');sel.onchange=()=>I.setLang(sel.value);
+let theme='light';try{theme=(JSON.parse(localStorage.getItem(M.storeKey))||{}).bookTheme||'light'}catch(e){}
+document.documentElement.dataset.theme=theme;
+document.getElementById('theme').onclick=()=>{const r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark';try{const s=JSON.parse(localStorage.getItem(M.storeKey))||{};s.bookTheme=r.dataset.theme;localStorage.setItem(M.storeKey,JSON.stringify(s))}catch(e){}};
+document.title=t('bookTitle',M.code)+' · ZyeemZia™';
+const yr=n(new Date().getFullYear());let h='';
+h+=`<section class="page cover"><div class="kick">ZyeemZia™ Academy · ${t('bookKick')}</div><h1>${esc(M.full)}</h1><p class="tag">${esc(M.tagline)}</p><div class="shield">${T.figure}</div><p class="muted">${t('edition')} ${yr} · totihl.zyeemzia.com<br>${t('publisher')}</p></section>`;
+let toc=`<section class="page"><div class="chap">${t('contents')}</div><h2>${t('toc')}</h2><div class="toc"><a href="#intro"><span>${t('howTo')}</span></a>`;
+T.modules.forEach((m,i)=>{toc+=`<a href="#${m.id}"><span>${t('chapter')} ${n(i+1)} · ${esc(m.title)}</span></a>`+m.lessons.map((l,j)=>`<a class="l" href="#b-${l.id}"><span>${n(i+1)}.${n(j+1)} ${esc(l.title)}</span></a>`).join('')});
+toc+=`<a href="#ws"><span>${t('wsChapter')}</span></a><a href="#cap"><span>${t('capChapter')}</span></a><a href="#plan"><span>${t('planChapter')}</span></a><a href="#exam"><span>${t('examChapter')}</span></a><a href="#glos"><span>${t('glosChapter')}</span></a><a href="#src"><span>${t('srcChapter')}</span></a></div></section>`;
 h+=toc;
-h+=`<section class="page" id="intro"><div class="chap">Preface</div><h2>How to use this book</h2><p>${esc(M.lead)}</p><p>Each chapter matches a module of the online course. Every lesson opens with objectives, sets out the rules with their treaty references, illustrates them with cases, and closes with key takeaways, a trainer’s note where relevant, and check questions with answers.</p><div class="callout"><b class="h">For trainers</b>Look for the <b>Trainer’s note</b> boxes and the Workshops chapter, which have ready-to-run exercises: the symbols quiz, Rupali and Shonali, the flower-pot demonstration, Grdelica, the Belgian soldiers in Somalia, the Georgian peacekeepers, the Kunduz tankers and the MOGADI planning exercise.</div><p class="muted" style="font-size:13px">This is an educational resource compiled from the BIPSOT ToT materials, ICRC teaching resources and public sources. It is not affiliated with or endorsed by the ICRC, the UN or BIPSOT. Always check the current status of treaties and policies.</p></section>`;
+h+=`<section class="page" id="intro"><div class="chap">${t('preface')}</div><h2>${t('howTo')}</h2><p>${esc(M.lead)}</p><p>${t('howToP')}</p><div class="callout"><b class="h">${t('forTrainers')}</b>${t('forTrainersP')}</div><p class="muted" style="font-size:13px">${t('bookDisc')}</p></section>`;
 T.modules.forEach((m,i)=>{
- h+=`<section class="page" id="${m.id}"><div class="chap">Chapter ${i+1} · ${esc(m.code)}</div><h2>${esc(m.title)}</h2><p class="muted">${esc(m.sub)}</p>`;
+ h+=`<section class="page" id="${m.id}"><div class="chap">${t('chapter')} ${n(i+1)} · ${esc(I.code(m.code))}</div><h2>${esc(m.title)}</h2><p class="muted">${esc(m.sub)}</p>`;
  m.lessons.forEach((l,j)=>{
-  h+=`<h3 class="lt" id="b-${l.id}">${i+1}.${j+1} ${esc(l.title)}</h3>`;
-  if(l.objectives)h+=`<div class="callout"><b class="h">Objectives</b><ul>${l.objectives.map(o=>`<li>${esc(o)}</li>`).join('')}</ul></div>`;
+  h+=`<h3 class="lt" id="b-${l.id}">${n(i+1)}.${n(j+1)} ${esc(l.title)}</h3>`;
+  if(l.objectives)h+=`<div class="callout"><b class="h">${t('objectives')}</b><ul>${l.objectives.map(o=>`<li>${esc(o)}</li>`).join('')}</ul></div>`;
   h+=l.body;
   if(l.keys)h+=`<div class="keys">${l.keys.map(k=>`<div>✔ ${esc(k)}</div>`).join('')}</div>`;
-  if(l.trainer)h+=`<div class="callout new"><b class="h">Trainer’s note</b>${l.trainer}</div>`;
-  if(l.quiz)h+=`<details><summary>Check questions (${l.quiz.length})</summary><ol>${l.quiz.map(q=>`<li>${esc(q.q)}<br><span class="ans">Answer: <b>${esc(q.o[q.a])}</b>. ${esc(q.e||'')}</span></li>`).join('')}</ol></details>`;
-  if(l.source)h+=`<p class="muted" style="font-size:12px">Source: ${esc(l.source)}</p>`;
+  if(l.trainer)h+=`<div class="callout new"><b class="h">${t('trainerNote')}</b>${l.trainer}</div>`;
+  if(l.quiz&&l.quiz.length)h+=`<details><summary>${t('checkQ',l.quiz.length)}</summary><ol>${l.quiz.map(q=>`<li>${esc(q.q)}<br><span class="ans">${t('answer')}: <b>${esc(q.o[q.a])}</b>. ${esc(q.e||'')}</span></li>`).join('')}</ol></details>`;
+  if(l.source)h+=`<p class="muted" style="font-size:12px">${t('source')}: ${esc(l.source)}</p>`;
  });
  h+=`</section>`;
 });
-h+=`<section class="page" id="ws"><div class="chap">Practice</div><h2>Workshops & syndicate exercises</h2>`+T.workshops.map((w,i)=>`<h3 class="lt">W${i+1}. ${esc(w.title)}</h3><p class="chap" style="font-size:11px">${esc(w.type)}</p>${w.body}${w.answers?`<details><summary>Model answers & debrief</summary>${w.answers}</details>`:''}`).join('')+`</section>`;
+h+=`<section class="page" id="ws"><div class="chap">${t('practice')}</div><h2>${t('wsTitle')}</h2>`+T.workshops.map((w,i)=>`<h3 class="lt">${n(i+1)}. ${esc(w.title)}</h3><p class="chap" style="font-size:11px">${esc(w.type)}</p>${w.body}${w.answers?`<details><summary>${t('modelDebrief')}</summary>${w.answers}</details>`:''}`).join('')+`</section>`;
 const c=M.capstone;
-h+=`<section class="page" id="cap"><div class="chap">Assessment</div><h2>${esc(c.title)}</h2>${c.brief}<h3>Deliverables</h3><ol>${c.deliverables.map(d=>`<li>${esc(d)}</li>`).join('')}</ol><div class="tw"><table><tr><th>Criterion</th><th>Developing</th><th>Proficient</th><th>Distinguished</th></tr>${c.rubric.map(r=>`<tr>${r.map(x=>`<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</table></div></section>`;
-h+=`<section class="page" id="plan"><div class="chap">Planning</div><h2>Programme & study plan</h2><h3>The two-day ToT (as delivered at BIPSOT)</h3><div class="tw"><table><tr><th>Session</th><th>Day 1</th><th>Day 2</th></tr>
-<tr><td>1</td><td>ICRC in Bangladesh: who we are; origins, Movement, emblem (Ch. 1)</td><td>Civilian-centric military operations and CIMIC (Ch. 8)</td></tr>
-<tr><td>2</td><td>Introduction to IHL: sources, classification, protection, enforcement (Ch. 1)</td><td>Case study: ISAF CIVCAS mitigation and the LEGAD role (Ch. 8)</td></tr>
-<tr><td>3</td><td>Importance of IHL in contemporary conflict (Ch. 5)</td><td>Real case studies: Syndicates A, B, C (Workshops)</td></tr>
-<tr><td>4</td><td>Principles of IHL: distinction, proportionality, precaution (Ch. 2)</td><td>MOGADI scenario: LEGAD, CIMIC and PA planning (Workshop)</td></tr>
-<tr><td>5</td><td>Integration of IHL into military operations (Ch. 5)</td><td>Syndicate presentations and debrief</td></tr>
-<tr><td>6</td><td>IHL in targeting and the San Remo matrix; Grdelica Bridge (Ch. 5)</td><td>Trainer’s toolkit, teach-back, 2026 updates (Ch. 10)</td></tr>
-<tr><td>7</td><td>IHL in peacekeeping operations (Ch. 7)</td><td>Exam and closing</td></tr></table></div>
-<h3>Six-week self-study plan</h3><div class="tw"><table><tr><th>Week</th><th>Chapters</th><th>Activity</th></tr><tr><td>1</td><td>1–2</td><td>Foundations and principles; symbols quiz; flower-pot demonstration</td></tr><tr><td>2</td><td>3–4</td><td>Status, objects and conduct of operations; book scenarios</td></tr><tr><td>3</td><td>5–6</td><td>Operations, targeting and weapons; command responsibility; Grdelica</td></tr><tr><td>4</td><td>7–8</td><td>Peacekeeping and civilians; Syndicates A, B and C</td></tr><tr><td>5</td><td>9–10</td><td>Integration and the trainer toolkit; MOGADI capstone</td></tr><tr><td>6</td><td>All</td><td>Updates seminar, micro-teach, practice exam</td></tr></table></div></section>`;
+h+=`<section class="page" id="cap"><div class="chap">${t('assessment')}</div><h2>${esc(c.title)}</h2>${c.brief}<h3>${t('deliverables')}</h3><ol>${c.deliverables.map(d=>`<li>${esc(d)}</li>`).join('')}</ol><div class="tw"><table><tr><th>${t('criterion')}</th><th>${t('developing')}</th><th>${t('proficient')}</th><th>${t('distinguished')}</th></tr>${c.rubric.map(r=>`<tr>${r.map(x=>`<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</table></div></section>`;
+h+=`<section class="page" id="plan"><div class="chap">${t('planning')}</div><h2>${t('planTitle')}</h2><h3>${t('twoDay')}</h3><div class="tw"><table><tr><th>${t('session')}</th><th>${t('day1')}</th><th>${t('day2')}</th></tr>${t('days').map((d,i)=>`<tr><td>${n(i+1)}</td><td>${esc(d[0])}</td><td>${esc(d[1])}</td></tr>`).join('')}</table></div>
+<h3>${t('sixWeek')}</h3><div class="tw"><table><tr><th>${t('week')}</th><th>${t('chapters')}</th><th>${t('activity')}</th></tr>${t('weeks').map((w,i)=>`<tr><td>${n(i+1)}</td><td>${esc(w[0])}</td><td>${esc(w[1])}</td></tr>`).join('')}</table></div></section>`;
 const ex=[...T.exam];T.modules.forEach(m=>m.lessons.forEach(l=>(l.quiz||[]).forEach(q=>{if(q.o.length>2)ex.push(q)})));
-h+=`<section class="page" id="exam"><div class="chap">Exam prep</div><h2>Practice exam (${ex.length} questions)</h2><ol>${ex.map(q=>`<li style="margin:10px 0">${esc(q.q)}<br>${q.o.map((o,j)=>`<span style="display:block;padding-left:12px">${String.fromCharCode(65+j)}. ${esc(o)}</span>`).join('')}</li>`).join('')}</ol><h3>Answer key</h3><ol style="columns:2;font-size:14px">${ex.map(q=>`<li><b>${String.fromCharCode(65+q.a)}</b>. ${esc(q.e||'')}</li>`).join('')}</ol></section>`;
-h+=`<section class="page" id="glos"><div class="chap">Reference</div><h2>Glossary</h2><div class="tw"><table>${T.flash.map(f=>`<tr><th style="width:32%">${esc(f[0])}</th><td>${esc(f[1])}</td></tr>`).join('')}</table></div>
-<h3>Abbreviations</h3><p style="font-size:14px">AP: Additional Protocol · BDA: Battle Damage Assessment · BPUFF: Basic Principles on the Use of Force and Firearms · CA3: Common Article 3 · CAS: Close Air Support · CCP: Casualty Collection Point · CCW: Convention on Certain Conventional Weapons · CDE: Collateral Damage Estimate · CHMR: Civilian Harm Mitigation and Response · CIHL: Customary IHL · CIMIC: Civil-Military Cooperation · CIVCAS: Civilian Casualties · EOF: Escalation of Force · EWIPA: Explosive Weapons in Populated Areas · GC: Geneva Convention · HNS: Humanitarian Notification System · HRDDP: Human Rights Due Diligence Policy · IAC/NIAC: (Non-)International Armed Conflict · ICC: International Criminal Court · IHRL: International Human Rights Law · ISR: Intelligence, Surveillance, Reconnaissance · KLE: Key Leader Engagement · LEGAD: Legal Adviser · MDCOA/MLCOA: Most Dangerous/Likely Course of Action · NFA/RFA: No/Restricted Fire Area · NSL/RTL: No-Strike/Restricted Target List · OF: Orange Forces · PA: Public Affairs · PID: Positive Identification · PoC: Protection of Civilians · PSM: Peace Support Mission · ROE: Rules of Engagement · SOFA: Status of Forces Agreement · TOT/ToT: Training of Trainers · UNSCR: UN Security Council Resolution.</p></section>`;
-h+=`<section class="page" id="src"><div class="chap">Sources</div><h2>Sources & further reading</h2><ul>
-<li>BIPSOT ToT course materials (Day 1 and Day 2 presentations, ICRC Dhaka Delegation 2025–2026): ICRC General Presentation; Introduction to IHL (ICRC Legal Adviser, Bangladesh); Importance of IHL; Integration of IHL; IHL in Targeting; IHL in PKO; Civilian-Centric Operations; CIVCAS case study; Principles of IHL; Grdelica Bridge; Scenario MOGADI; Annex A.</li>
-<li>LOAC instructor lesson books: Lesson 1 Introduction; Lesson 2 Terms and Definitions; Lesson 3 Conduct of Operations; Lesson 5 Weapons; Lesson 6 Command Responsibility.</li>
-<li>ICRC, <i>Integrating the Law</i>; ICRC, <i>How Does Law Protect in War?</i> (Belgian soldiers in Somalia case).</li>
-<li>Geneva Conventions 1949 and Additional Protocols; ICRC Customary IHL Study; Rome Statute; UN ST/SGB/1999/13.</li>
-<li>Recent developments: ICRC and UN statements on autonomous weapons (2023–2026); 34th International Conference resolutions (2024); EWIPA Declaration (2022); the Global Initiative on IHL (2024–).</li>
-<li>Further reading: ICRC Updated Commentaries; <i>International Review of the Red Cross</i>; the San Remo IIHL; A.P.V. Rogers, <i>Law on the Battlefield</i>.</li></ul>
-<p class="muted" style="margin-top:40px">© ${yr} ZyeemZia™ · Developed & published by Zyeem Bin Zia · Dhaka, Bangladesh · totihl.zyeemzia.com</p></section>`;
+h+=`<section class="page" id="exam"><div class="chap">${t('examPrep')}</div><h2>${t('practiceExam',ex.length)}</h2><ol>${ex.map(q=>`<li style="margin:10px 0">${esc(q.q)}<br>${q.o.map((o,j)=>`<span style="display:block;padding-left:12px">${String.fromCharCode(65+j)}. ${esc(o)}</span>`).join('')}</li>`).join('')}</ol><h3>${t('answerKey')}</h3><ol class="akey">${ex.map(q=>`<li><b>${String.fromCharCode(65+q.a)}</b>. ${esc(q.e||'')}</li>`).join('')}</ol></section>`;
+h+=`<section class="page" id="glos"><div class="chap">${t('reference')}</div><h2>${t('glossary')}</h2><div class="tw"><table>${T.flash.map(f=>`<tr><th style="width:32%">${esc(f[0])}</th><td>${esc(f[1])}</td></tr>`).join('')}</table></div>
+<h3>${t('abbrev')}</h3><p style="font-size:14px">AP: Additional Protocol · BDA: Battle Damage Assessment · BPUFF: Basic Principles on the Use of Force and Firearms · CA3: Common Article 3 · CAS: Close Air Support · CCP: Casualty Collection Point · CCW: Convention on Certain Conventional Weapons · CDE: Collateral Damage Estimate · CHMR: Civilian Harm Mitigation and Response · CIHL: Customary IHL · CIMIC: Civil-Military Cooperation · CIVCAS: Civilian Casualties · EOF: Escalation of Force · EWIPA: Explosive Weapons in Populated Areas · GC: Geneva Convention · HNS: Humanitarian Notification System · HRDDP: Human Rights Due Diligence Policy · IAC/NIAC: (Non-)International Armed Conflict · ICC: International Criminal Court · IHRL: International Human Rights Law · ISR: Intelligence, Surveillance, Reconnaissance · KLE: Key Leader Engagement · LEGAD: Legal Adviser · MDCOA/MLCOA: Most Dangerous/Likely Course of Action · NFA/RFA: No/Restricted Fire Area · NSL/RTL: No-Strike/Restricted Target List · OF: Orange Forces · PA: Public Affairs · PID: Positive Identification · PoC: Protection of Civilians · PSM: Peace Support Mission · ROE: Rules of Engagement · SOFA: Status of Forces Agreement · TOT/ToT: Training of Trainers · UNSCR: UN Security Council Resolution.</p></section>`;
+h+=`<section class="page" id="src"><div class="chap">${t('sources')}</div><h2>${t('srcTitle')}</h2><ul>${t('srcList').map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
+<p class="muted" style="margin-top:40px">© ${yr} ZyeemZia™ · ${t('publisher')} · totihl.zyeemzia.com</p></section>`;
 document.getElementById('book').innerHTML=h;
-if(location.hash==='#print'){openAll();setTimeout(()=>print(),600)}
+if(location.hash==='#print'){openAll();setTimeout(()=>print(),800)}
+else if(location.hash){const e=document.getElementById(location.hash.slice(1));if(e)e.scrollIntoView()}
+})();
 </script>
 </body></html>
