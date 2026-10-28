@@ -123,6 +123,15 @@ footer.ft .wrap{display:flex;gap:20px;flex-wrap:wrap;justify-content:space-betwe
 mark{background:var(--gold);color:#000;border-radius:3px}
 abbr[title]{text-decoration:underline dotted var(--teal);text-underline-offset:3px;cursor:help}
 table.abbr th[scope=row]{white-space:nowrap;color:var(--acc2)}
+/* practice engine */
+.pxo.sel{border-color:var(--teal)!important;background:color-mix(in srgb,var(--teal) 18%,var(--card))!important}
+.qmap{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:6px;margin:10px 0}
+.qmap button{height:38px;border-radius:9px;border:1px solid var(--line);background:var(--card2);color:var(--ink);cursor:pointer;font:inherit;font-size:13px}
+.qmap button.ans{background:color-mix(in srgb,var(--teal) 25%,var(--card2))}
+.qmap button.flag{outline:2px solid var(--gold)}
+.qmap button.cur{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}
+.bd{display:grid;grid-template-columns:minmax(90px,160px) 1fr 52px;gap:10px;align-items:center;margin:6px 0;font-size:14px}
+.bd .meter{margin:0}
 /* case lab */
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 button.chip{cursor:pointer;color:var(--ink);font:inherit;font-size:13px}

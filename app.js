@@ -26,7 +26,11 @@ let st=normalize((()=>{try{return JSON.parse(localStorage.getItem(KEY))}catch(e)
 let pushT=0,lastPushed='',syncNA=false;
 const save=()=>{st._t=Date.now();try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}scheduleSync()};
 // exam bank = dedicated questions + every multiple-choice lesson check
-const BANK=[...T.exam];all.forEach(l=>(l.quiz||[]).forEach(q=>{if(q.o.length>2)BANK.push(q)}));
+// every bank item: {q,o,a,e,m(module id),k(stable key)}; lesson checks carry their module, new scenario bank is localised per item
+const BANK=[];
+T.exam.forEach((q,i)=>BANK.push(Object.assign({m:'bank',k:'x'+i},q)));
+all.forEach(l=>(l.quiz||[]).forEach((q,i)=>{if(q.o.length>2)BANK.push(Object.assign({m:l.mod.id,k:l.id+'.'+i},q))}));
+(T.qbank||[]).forEach((x,i)=>{const L=x[I.lang]||x.en;if(L&&L.o&&L.o.length===4)BANK.push({q:L.q,o:L.o,a:x.a,e:L.e,m:x.m,k:'qb'+i})});
 const doneCount=()=>all.filter(l=>st.done[l.id]).length;
 const pct=()=>Math.round(100*doneCount()/all.length);
 const view=$('#view');
@@ -175,6 +179,8 @@ const saveEX=()=>{try{if(EX&&!EX.done)localStorage.setItem(EXKEY,JSON.stringify(
   else try{localStorage.removeItem(EXKEY)}catch(e){}})();
 function exam(){
   if(EX&&!EX.done)return officialHTML();
+  if(PX&&!PX.done&&PX.open)return pxHTML();
+  if(PX&&PX.done&&PX.open)return pxResultHTML();
   const O=st.off,lessonsOk=pct()===100,np=Math.min(M.examSize,BANK.length);
   return `<section class="pg wrap"><h1>${t('examTitle')}</h1>
   <div class="grid exm">
@@ -182,8 +188,9 @@ function exam(){
     ${offNA?`<div class="callout"><b class="h">ℹ</b>${t('offSoon')}</div>`:''}
     ${lessonsOk?'':`<div class="callout"><b class="h">🔒</b>${t('offLocked',doneCount(),all.length)}</div>`}
     <button type="button" class="btn" id="offstart" ${lessonsOk?'':'disabled'}>${t('offStart')}</button></div>
-   <div class="card"><div class="kick">${t('pracTitle')}</div><p>${t('pracP',np,BANK.length)}</p><p class="muted">${t('best')}: <b>${n(st.best||0)}%</b></p>
-    <button type="button" class="btn ghost" id="startx">${t('pracStart')}</button></div>
+   <div class="card"><div class="kick">${t('pracTitle')}</div><p>${t('pracP',np,BANK.length)}</p><p class="muted">${t('best')}: <b>${n(st.best||0)}%</b>${(st.prac||[]).length?` · ${t('attempts')}: <b>${n(st.prac.length)}</b> · ${t('last')}: <b>${n(st.prac[st.prac.length-1].s)}%</b>`:''}</p>
+    ${PX&&!PX.done?`<button type="button" class="btn" id="pxresume">${t('resume')}</button> `:''}<button type="button" class="btn ghost" id="startx">${t('pracStart')}</button>
+    <details style="margin-top:10px"><summary>${t('drill')}</summary><div class="chips" style="margin-top:8px">${T.modules.map(m=>`<button type="button" class="chip" data-drill="${m.id}">${esc(I.code(m.code))}</button>`).join('')}</div></details></div>
   </div>
   ${O.attempts||O.passed?`<div class="card" style="margin-top:16px"><div class="kick">${t('record')}</div><p>${t('attempts')}: <b>${n(O.attempts)}</b> · ${t('best')}: <b>${n(O.best)}%</b>${O.unclaimed?` · <a href="#certificate">${t('claimH')} ›</a>`:O.passed?` · <a href="#certificate">${t('verifiedCert')}: ${esc(O.passed.id)}</a>`:''}</p></div>`:''}
   <div id="xbox"></div></section>`;
@@ -238,18 +245,82 @@ function showOfficialResult(){
    <p><button type="button" class="btn ghost" id="exagain">${t('startExam')}</button></p></section>`;
   wireClaim();$('#exagain').onclick=()=>{EX=null;saveEX();route()};window.scrollTo(0,0);
 }
-function startPractice(){
-  const set=shuffled(BANK).slice(0,M.examSize);
-  $('#xbox').innerHTML=`<h2 class="sec">${t('practiceX')}</h2><p class="mono muted" id="xcount"></p><div class="quiz">${set.map((q,i)=>`<fieldset class="q"><legend><b>${n(i+1)}. ${esc(q.q)}</b></legend>${q.o.map((o,j)=>`<label class="opt"><input type="radio" name="x${i}" value="${j}"> ${esc(o)}</label>`).join('')}<div class="exp" hidden></div></fieldset>`).join('')}</div><button type="button" class="btn" id="submitx">${t('submitExam')}</button><div id="xres"></div>`;
-  const count=()=>{$('#xcount').textContent=t('answered',document.querySelectorAll('#xbox input:checked').length,set.length)};
-  $('#xbox').addEventListener('change',count);count();$('#xbox').scrollIntoView({behavior:'smooth'});
-  $('#submitx').onclick=()=>{
-    const missing=set.length-document.querySelectorAll('#xbox input:checked').length;if(missing&&!confirm(t('unanswered',missing)))return;
-    let c=0;set.forEach((q,i)=>{const v=document.querySelector(`input[name=x${i}]:checked`);const ok=!!v&&+v.value===q.a;if(ok)c++;const e=document.querySelectorAll('#xbox .q')[i].querySelector('.exp');e.hidden=false;e.innerHTML=(ok?'✅ ':'❌ '+t('correctIs')+esc(q.o[q.a])+'. ')+esc(q.e||'')});
-    document.querySelectorAll('#xbox input').forEach(x=>x.disabled=true);$('#submitx').disabled=true;
-    const s=Math.round(100*c/set.length);st.best=Math.max(st.best||0,s);save();bar();
-    $('#xres').innerHTML=`<div class="callout ${s>=M.passMark?'new':'red'}"><b class="h">${t('score')}: ${n(s)}% (${n(c)}/${n(set.length)})</b>${s>=M.distinctionMark?t('distinction'):s>=M.passMark?t('passed'):t('notYet')}<a href="#certificate">${t('certLink')}</a></div>`;$('#xres').scrollIntoView({behavior:'smooth'})};
+/* ---------- practice / final mock exam engine ----------
+   stratified draw across modules, shuffled options, no repeats from the last attempt, timer with autosave and resume,
+   one question per screen with a question map, flags, review-before-submit, module breakdown and full answer review */
+const PXKEY='zz-totihl-practice-'+I.lang;let PX=null,pxTimer=0;
+const modName=id=>{const m=T.modules.find(x=>x.id===id);return m?I.code(m.code):t('mixed')};
+const pxSave=()=>{try{if(PX&&!PX.done)localStorage.setItem(PXKEY,JSON.stringify(PX));else localStorage.removeItem(PXKEY)}catch(e){}};
+(function(){try{const r=JSON.parse(localStorage.getItem(PXKEY)||'null');if(r&&Array.isArray(r.items)&&r.items.length&&r.items.every(x=>BANK.some(b=>b.k===x.k))){PX=r;PX.open=false}}catch(e){}})();
+function pxDraw(size,only){
+  const pool=BANK.filter(b=>!only||b.m===only);const recent=new Set(only?[]:(st.lastKeys||[]));
+  const fresh=pool.filter(b=>!recent.has(b.k)),src=fresh.length>=Math.min(size,pool.length)?fresh:pool;
+  const by={};src.forEach(b=>(by[b.m]=by[b.m]||[]).push(b));Object.keys(by).forEach(k=>by[k]=shuffled(by[k]));
+  const out=[];const mods=shuffled(Object.keys(by));let added=true;
+  while(out.length<Math.min(size,src.length)&&added){added=false;for(const m of mods){if(out.length>=size)break;const b=by[m].pop();if(b){out.push(b);added=true}}}
+  return shuffled(out).map(b=>({k:b.k,p:shuffled(b.o.map((_,j)=>j))}));
 }
+function pxStart(only){
+  const size=only?Math.min(10,BANK.filter(b=>b.m===only).length):Math.min(M.examSize,BANK.length);
+  PX={items:pxDraw(size,only),ans:{},flags:{},i:0,end:only?0:Date.now()+60*60e3,done:false,open:true,drill:only||''};
+  if(!only)st.lastKeys=PX.items.map(x=>x.k);save();pxSave();route();
+}
+const pxQ=k=>{const it=PX.items[k],b=BANK.find(x=>x.k===it.k);return {b,opts:it.p.map(j=>b.o[j]),correct:it.p.indexOf(b.a)}};
+function pxHTML(){
+  const k=PX.i,{b,opts}=pxQ(k),N=PX.items.length,a=PX.ans[k],answered=Object.keys(PX.ans).length;
+  return `<section class="pg wrap"><div class="exbar" role="status"><b>${PX.drill?t('drillOf',modName(PX.drill)):t('practiceX')}</b><span>${t('qOf',k+1,N)}</span><span id="pxAns">${t('answered',answered,N)}</span>${PX.end?`<span>⏱ <b id="pxTime">–</b></span>`:''}</div>
+  <div class="card"><div class="kick">${esc(modName(b.m))}</div><h2 id="pxQ" tabindex="-1" style="font-size:22px">${esc(b.q)}</h2>
+   <div class="decide" style="margin:0;border:0">${opts.map((o,j)=>`<button type="button" class="o pxo${a===j?' sel':''}" data-j="${j}" aria-pressed="${a===j}"><b>${'ABCD'[j]}.</b> ${esc(o)}</button>`).join('')}</div>
+   <div class="navrow"><button type="button" class="btn ghost" id="pxPrev" ${k?'':'disabled'}>‹ ${t('prev').replace('‹','').trim()}</button>
+    <button type="button" class="btn ghost" id="pxFlag" aria-pressed="${!!PX.flags[k]}">${PX.flags[k]?'⚑ '+t('flagged'):'⚐ '+t('flag')}</button>
+    ${k+1<N?`<button type="button" class="btn" id="pxNext">${t('next').replace('›','').trim()} ›</button>`:`<button type="button" class="btn" id="pxReview">${t('reviewSubmit')}</button>`}</div></div>
+  <div class="card" style="margin-top:14px"><div class="kick">${t('qmap')}</div><div class="qmap">${PX.items.map((_,j)=>`<button type="button" data-go="${j}" class="${PX.ans[j]!=null?'ans':''} ${PX.flags[j]?'flag':''} ${j===k?'cur':''}" aria-label="${t('qOf',j+1,N)}">${n(j+1)}</button>`).join('')}</div>
+   <p class="muted" style="font-size:13px">${t('kbdHint')}</p><button type="button" class="btn sm ghost" id="pxReview2">${t('reviewSubmit')}</button> <button type="button" class="btn sm ghost" id="pxQuit">${t('pause')}</button></div></section>`;
+}
+function pxReviewHTML(){
+  const N=PX.items.length,un=PX.items.map((_,j)=>j).filter(j=>PX.ans[j]==null),fl=PX.items.map((_,j)=>j).filter(j=>PX.flags[j]);
+  return `<section class="pg wrap"><h1>${t('reviewSubmit')}</h1><div class="card"><p>${t('answered',N-un.length,N)}</p>
+  ${un.length?`<p>⚠ ${t('unansweredList')}: ${un.map(j=>`<a href="#exam" data-go="${j}">${n(j+1)}</a>`).join(', ')}</p>`:''}
+  ${fl.length?`<p>⚑ ${t('flaggedList')}: ${fl.map(j=>`<a href="#exam" data-go="${j}">${n(j+1)}</a>`).join(', ')}</p>`:''}
+  <p><button type="button" class="btn ghost" id="pxBack">‹ ${t('backToQ')}</button> <button type="button" class="btn" id="pxSubmit">${t('submitExam')}</button></p></div></section>`;
+}
+function pxTick(){if(!PX||PX.done||!PX.end){clearInterval(pxTimer);return}const left=Math.max(0,PX.end-Date.now()),el=$('#pxTime');if(el){el.textContent=n(Math.floor(left/60e3))+':'+n(String(Math.floor(left/1000)%60).padStart(2,'0'));el.classList.toggle('low',left<5*60e3)}if(left<=0){clearInterval(pxTimer);toast(t('timeUp'),6000);pxSubmit()}}
+function pxWire(){
+  clearInterval(pxTimer);if(PX.end){pxTimer=setInterval(pxTick,1000);pxTick()}
+  const go=j=>{PX.i=Math.max(0,Math.min(PX.items.length-1,j));pxSave();view.innerHTML=pxHTML();pxWire();const h=$('#pxQ');if(h)h.focus({preventScroll:true})};
+  view.querySelectorAll('.pxo').forEach(b=>b.onclick=()=>{PX.ans[PX.i]=+b.dataset.j;pxSave();view.querySelectorAll('.pxo').forEach(x=>{const on=x===b;x.classList.toggle('sel',on);x.setAttribute('aria-pressed',on)});const m=view.querySelector(`[data-go="${PX.i}"]`);if(m)m.classList.add('ans');$('#pxAns').textContent=t('answered',Object.keys(PX.ans).length,PX.items.length)});
+  view.querySelectorAll('[data-go]').forEach(b=>b.onclick=e=>{e.preventDefault();go(+b.dataset.go)});
+  if($('#pxPrev'))$('#pxPrev').onclick=()=>go(PX.i-1);if($('#pxNext'))$('#pxNext').onclick=()=>go(PX.i+1);
+  if($('#pxFlag'))$('#pxFlag').onclick=()=>{PX.flags[PX.i]=!PX.flags[PX.i];pxSave();go(PX.i)};
+  const rev=()=>{view.innerHTML=pxReviewHTML();window.scrollTo(0,0);view.querySelectorAll('[data-go]').forEach(b=>b.onclick=e=>{e.preventDefault();go(+b.dataset.go)});$('#pxBack').onclick=()=>go(PX.i);$('#pxSubmit').onclick=pxSubmit};
+  ['#pxReview','#pxReview2'].forEach(s=>{if($(s))$(s).onclick=rev});
+  if($('#pxQuit'))$('#pxQuit').onclick=()=>{PX.open=false;pxSave();clearInterval(pxTimer);route()};
+}
+document.addEventListener('keydown',e=>{
+  if(!PX||PX.done||!PX.open||location.hash!=='#exam'||/INPUT|TEXTAREA|SELECT/.test((e.target.tagName||''))||e.ctrlKey||e.metaKey||e.altKey)return;
+  const k=e.key.toLowerCase(),idx='abcd'.indexOf(k)>=0?'abcd'.indexOf(k):'1234'.indexOf(k);
+  if(idx>=0){const b=view.querySelector(`.pxo[data-j="${idx}"]`);if(b){b.click();e.preventDefault()}}
+  else if(e.key==='ArrowRight'&&$('#pxNext')){$('#pxNext').click();e.preventDefault()}
+  else if(e.key==='ArrowLeft'&&$('#pxPrev')&&!$('#pxPrev').disabled){$('#pxPrev').click();e.preventDefault()}
+  else if(k==='f'&&$('#pxFlag')){$('#pxFlag').click();e.preventDefault()}
+});
+function pxSubmit(){
+  if(!PX||PX.done)return;clearInterval(pxTimer);
+  let right=0;const per={};PX.items.forEach((_,j)=>{const {b,correct}=pxQ(j);per[b.m]=per[b.m]||{r:0,n:0};per[b.m].n++;if(PX.ans[j]===correct){right++;per[b.m].r++}});
+  const s=Math.round(100*right/PX.items.length);PX.done=true;PX.result={right,s,per};
+  if(!PX.drill){st.best=Math.max(st.best||0,s);st.prac=(st.prac||[]).concat({d:today(),s}).slice(-20)}
+  save();pxSave();bar();route();
+}
+function pxResultHTML(){
+  const r=PX.result,N=PX.items.length,pass=r.s>=M.passMark,wrongOnly=PX.wrongOnly;
+  const rows=Object.entries(r.per).map(([m,p])=>{const v=Math.round(100*p.r/p.n);return `<div class="bd"><span>${esc(modName(m))}</span><div class="meter"><i style="width:${v}%;background:${v>=M.passMark?'var(--ok)':'var(--bad)'}"></i></div><span class="mono">${n(p.r)}/${n(p.n)}</span></div>`}).join('');
+  const weak=Object.entries(r.per).filter(([m,p])=>p.r/p.n<M.passMark/100&&T.modules.some(x=>x.id===m)).map(([m])=>m);
+  return `<section class="pg wrap"><div class="callout ${pass?'new':'red'}"><b class="h">${PX.drill?t('drillOf',modName(PX.drill)):t('practiceX')} · ${t('score')}: ${n(r.s)}% (${n(r.right)}/${n(N)})</b>${r.s>=M.distinctionMark?t('distinction'):pass?t('passed'):t('notYet')}</div>
+  <div class="card"><div class="kick">${t('byModule')}</div>${rows}${weak.length?`<p class="muted" style="margin-top:10px">${t('revise')}: ${weak.map(m=>{const mm=T.modules.find(x=>x.id===m);return `<a href="#lesson/${mm.lessons[0].id}">${esc(I.code(mm.code))}</a>`}).join(' · ')}</p>`:''}
+   <p style="margin-top:12px"><button type="button" class="btn" id="pxAgain">${t('pracStart')}</button> <button type="button" class="btn ghost" id="pxWrong">${wrongOnly?t('showAll'):t('wrongOnly')}</button> <button type="button" class="btn ghost" id="pxClose">${t('close')}</button></p></div>
+  <div class="quiz">${PX.items.map((_,j)=>{const {b,opts,correct}=pxQ(j),a=PX.ans[j],ok=a===correct;if(wrongOnly&&ok)return '';return `<div class="q" style="border-color:${ok?'var(--ok)':'var(--bad)'}"><b>${n(j+1)}. ${esc(b.q)}</b><div class="muted" style="font-size:12px">${esc(modName(b.m))}</div>${opts.map((o,x)=>`<div class="opt" style="${x===correct?'color:var(--ok);font-weight:600':x===a?'color:var(--bad)':''}">${x===correct?'✔':x===a?'✘':'·'} ${'ABCD'[x]}. ${esc(o)}</div>`).join('')}${a==null?`<p class="muted">${t('notAnswered')}</p>`:''}<div class="exp">${esc(b.e||'')}</div></div>`}).join('')}</div></section>`;
+}
+function pxResultWire(){$('#pxAgain').onclick=()=>pxStart(PX.drill||'');$('#pxWrong').onclick=()=>{PX.wrongOnly=!PX.wrongOnly;route()};$('#pxClose').onclick=()=>{PX.open=false;route()}}
 const capDone=()=>M.capstone.deliverables.every((_,i)=>st.cap[i]);
 function capstone(){const c=M.capstone,d=c.deliverables.filter((_,i)=>st.cap[i]).length;return `<section class="pg wrap"><h1>${esc(c.title)}</h1><div class="card">${c.brief}<h3>${t('deliverables')} · ${n(d)}/${n(c.deliverables.length)}</h3><div class="caplist">${c.deliverables.map((x,i)=>`<label class="opt"><input type="checkbox" data-cap="${i}" ${st.cap[i]?'checked':''}> ${esc(x)}</label>`).join('')}</div><p class="muted">${t('capNote',M.distinctionMark)}</p><h3>${t('rubric')}</h3><div class="tw"><table><tr><th>${t('criterion')}</th><th>${t('developing')}</th><th>${t('proficient')}</th><th>${t('distinguished')}</th></tr>${c.rubric.map(r=>`<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td></tr>`).join('')}</table></div></div></section>`}
 
@@ -402,7 +473,12 @@ function route(){
   view.innerHTML=fn();navOn(r==='lesson'&&arg===T.updatesLesson?'updates':r);bar();chrome();window.scrollTo(0,0);
   wireQuiz(view);flash();
   const d=$('#done');if(d)d.onclick=()=>{st.done[d.dataset.id]=1;save();const i=all.findIndex(l=>l.id===d.dataset.id);const nx=all[i+1];if(nx)location.hash='#lesson/'+nx.id;else route()};
-  if(r==='exam'){if(EX&&!EX.done)wireOfficial();else{if($('#startx'))$('#startx').onclick=startPractice;if($('#offstart'))$('#offstart').onclick=officialStart}}
+  if(r==='exam'){if(EX&&!EX.done)wireOfficial();else if(PX&&PX.open&&!PX.done)pxWire();else if(PX&&PX.open&&PX.done)pxResultWire();else{
+    if($('#startx'))$('#startx').onclick=()=>{if(PX&&!PX.done&&!confirm(t('discard')))return;pxStart('')};
+    if($('#pxresume'))$('#pxresume').onclick=()=>{PX.open=true;route()};
+    view.querySelectorAll('[data-drill]').forEach(b=>b.onclick=()=>pxStart(b.dataset.drill));
+    if($('#offstart'))$('#offstart').onclick=officialStart}}
+  if(r!=='exam')clearInterval(pxTimer);
   if(r==='certificate')wireCert();
   if(r==='cases')wireCases(arg);
   if(r==='abbr')wireAbbr();
