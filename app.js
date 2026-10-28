@@ -17,6 +17,7 @@ function normalize(s){
   s.best=Math.max(0,Math.min(100,+s.best||0));
   const o=s.off&&typeof s.off==='object'?s.off:{};
   if(!s.cap||typeof s.cap!=='object')s.cap={};
+  if(!s.cases||typeof s.cases!=='object')s.cases={};
   s.off={attempts:+o.attempts||0,best:+o.best||0,history:Array.isArray(o.history)?o.history.filter(h=>h&&typeof h==='object').slice(-60):[],
     passed:o.passed&&typeof o.passed==='object'&&o.passed.id?o.passed:null,unclaimed:o.unclaimed&&typeof o.unclaimed.attempt==='string'?o.unclaimed:null};
   return s;
@@ -62,6 +63,7 @@ function merge(L,R){
   const seen=new Set();E.history=E.history.concat(O.history).filter(h=>{const k=h.date+'|'+h.score;if(seen.has(k))return false;seen.add(k);return true}).slice(-60);
   const rank=p=>p?(p.distinction?1000:0)+(+p.score||0):-1;if(rank(O.passed)>rank(E.passed))E.passed=O.passed;
   if(!E.unclaimed&&O.unclaimed)E.unclaimed=O.unclaimed;if(E.unclaimed&&E.passed&&(E.unclaimed.attempt===E.passed.attempt||E.unclaimed.score<=E.passed.score))E.unclaimed=null;
+  Object.keys(older.cases).forEach(k=>{out.cases[k]=1});
   Object.keys(older.cap).forEach(k=>{if(!(k in out.cap))out.cap[k]=older.cap[k]});
   ['name','certTs','certId'].forEach(k=>{if(!out[k]&&older[k])out[k]=older[k]});out._t=Math.max(L._t||0,R._t||0);return out;
 }
@@ -334,21 +336,82 @@ function search(q){
   return `<section class="pg wrap"><h1>${t('searchTitle',esc(q))}</h1><p class="muted">${hits.length?t('results',hits.length):t('noResults')}</p>${hits.map(l=>{const s=plain(l);const i=s.toLowerCase().indexOf(ql);return `<a class="card link" style="margin:10px 0" href="#lesson/${l.id}"><b>${esc(l.title)}</b><br><small class="muted">${esc(l.mod.title)}</small><p class="muted">…${esc(s.slice(Math.max(0,i-80),i))}<mark>${esc(s.slice(i,i+q.length))}</mark>${esc(s.slice(i+q.length,i+q.length+120))}…</p></a>`}).join('')}</section>`;
 }
 
+/* ---------- case lab: real cases, a commander's decision, then the legal solution ---------- */
+let caseTag='';
+function cases(id){
+  const C=T.cases||[];
+  if(id){const i=C.findIndex(c=>c.id===id);if(i<0)return cases('');const c=C[i],prev=C[i-1],next=C[i+1],seen=st.cases&&st.cases[c.id];
+    return `<section class="pg wrap"><p><a href="#cases">‹ ${t('caseLab')}</a></p><article class="lesson">
+    <div class="kick">${t('caseN',i+1,C.length)} · ${esc(c.where)} · ${esc(c.when)}</div><h1>${esc(c.title)}</h1>
+    <p>${c.tags.map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</p>
+    <h3>${t('facts')}</h3>${c.facts}
+    ${c.decide?`<div class="card decide"><div class="kick">⚖ ${t('yourCall')}</div><p><b>${esc(c.decide.q)}</b></p>${c.decide.o.map((o,j)=>`<button type="button" class="o dopt" data-j="${j}">${String.fromCharCode(65+j)}. ${esc(o.t)}</button>`).join('')}<div id="dfb" hidden></div></div>`:''}
+    <h3>${t('discuss')}</h3><ol>${c.questions.map(q=>`<li>${esc(q)}</li>`).join('')}</ol>
+    <details id="sol"${seen?' open':''}><summary>${t('solution')}</summary>${c.solution}</details>
+    ${c.trainer?`<div class="callout new"><b class="h">🧑‍🏫 ${t('trainerNote')}</b>${c.trainer}</div>`:''}
+    ${c.sources&&c.sources.length?`<p class="muted" style="font-size:13px">📚 ${t('sourcesL')}: ${c.sources.map(s=>`<a href="${esc(s.u)}" target="_blank" rel="noopener">${esc(s.t)}</a>`).join(' · ')}</p>`:''}
+    <div class="navrow">${prev?`<a class="btn ghost" href="#cases/${prev.id}">‹ ${esc(prev.title)}</a>`:'<span></span>'}${next?`<a class="btn ghost" href="#cases/${next.id}">${esc(next.title)} ›</a>`:'<span></span>'}</div></article></section>`}
+  const tags=[...new Set(C.flatMap(c=>c.tags))];const list=C.filter(c=>!caseTag||c.tags.includes(caseTag));const done=C.filter(c=>st.cases&&st.cases[c.id]).length;
+  return `<section class="pg wrap"><h1>${t('caseLab')}</h1><p class="muted">${t('caseLead',C.length)} <b>${n(done)}/${n(C.length)}</b></p>
+  <div class="chips" role="group"><button type="button" class="chip${caseTag?'':' on'}" data-tag="">${t('allCases')}</button>${tags.map(x=>`<button type="button" class="chip${caseTag===x?' on':''}" data-tag="${esc(x)}">${esc(x)}</button>`).join('')}</div>
+  <div class="grid" style="margin-top:14px">${list.map(c=>`<a class="card link" href="#cases/${c.id}"><span class="num">${esc(c.where)} · ${esc(c.when)}</span><h3>${st.cases&&st.cases[c.id]?'✅ ':''}${esc(c.title)}</h3><p class="muted">${esc(c.teaser)}</p><p>${c.tags.slice(0,3).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</p></a>`).join('')}</div></section>`;
+}
+function wireCases(id){
+  view.querySelectorAll('[data-tag]').forEach(b=>b.onclick=()=>{caseTag=b.dataset.tag;route()});
+  if(!id)return;const c=(T.cases||[]).find(x=>x.id===id);if(!c)return;
+  const mark=()=>{st.cases=st.cases||{};if(!st.cases[c.id]){st.cases[c.id]=1;save()}};
+  const sol=$('#sol');if(sol)sol.addEventListener('toggle',()=>{if(sol.open)mark()});
+  view.querySelectorAll('.dopt').forEach(b=>b.onclick=()=>{const box=b.closest('.decide');if(box.dataset.done)return;box.dataset.done=1;
+    const o=c.decide.o[+b.dataset.j];box.querySelectorAll('.dopt').forEach(x=>{x.disabled=true;if(c.decide.o[+x.dataset.j].ok)x.classList.add('right')});if(!o.ok)b.classList.add('wrong');
+    const f=$('#dfb');f.hidden=false;f.innerHTML=`<div class="callout ${o.ok?'new':'red'}"><b class="h">${o.ok?t('goodCall'):t('rethink')}</b>${esc(o.why)}</div>`;mark()});
+}
+
+/* ---------- abbreviations: search, category filter, expansion in the reader's language ---------- */
+let abbrCat='',abbrQ='';
+const abbrCol=I.lang==='bn'?2:I.lang==='fr'?3:1;
+function abbrRows(){const q=abbrQ.trim().toLowerCase();return (T.abbr||[]).filter(a=>(!abbrCat||a[4]===abbrCat)&&(!q||a.slice(0,4).join(' ').toLowerCase().includes(q))).sort((x,y)=>x[0].localeCompare(y[0]))}
+function abbrTable(){const rows=abbrRows();return rows.length?`<div class="tw"><table class="abbr"><tr><th>${t('abbrCol')}</th><th>${t('meaning')}</th>${I.lang!=='en'?'<th>English</th>':''}</tr>${rows.map(a=>`<tr><th scope="row" class="mono">${esc(a[0])}</th><td>${esc(a[abbrCol])}</td>${I.lang!=='en'?`<td class="muted">${esc(a[1])}</td>`:''}</tr>`).join('')}</table></div>`:`<p class="muted">${t('noResults')}</p>`}
+function abbr(){
+  const cats=[...new Set((T.abbr||[]).map(a=>a[4]))].sort();
+  return `<section class="pg wrap"><h1>${t('abbrTitle')}</h1><p class="muted">${t('abbrLead',(T.abbr||[]).length)}</p>
+  <div class="row"><input class="txt" id="abbrQ" type="search" value="${esc(abbrQ)}" placeholder="${t('abbrPh')}" aria-label="${t('abbrPh')}"></div>
+  <div class="chips" style="margin:12px 0"><button type="button" class="chip${abbrCat?'':' on'}" data-acat="">${t('allCases')}</button>${cats.map(c=>`<button type="button" class="chip${abbrCat===c?' on':''}" data-acat="${esc(c)}">${esc(t('cat_'+c.replace(/\W+/g,''))||c)}</button>`).join('')}</div>
+  <div id="abbrBox">${abbrTable()}</div></section>`;
+}
+// explain abbreviations inline: the first occurrence of each known abbreviation in a lesson gets a hover/tap title
+const ABBR_MAP=(()=>{const m={};(T.abbr||[]).forEach(a=>a[0].split(/\s*\/\s*|\s+\(|\)/).map(s=>s.trim()).filter(s=>/^[A-Z][A-Z0-9-]{1,9}$/.test(s)).forEach(k=>{if(!m[k])m[k]=a[abbrCol]}));return m})();
+function explainAbbr(root){
+  if(!root||!Object.keys(ABBR_MAP).length)return;const re=new RegExp('\\b('+Object.keys(ABBR_MAP).sort((a,b)=>b.length-a.length).map(k=>k.replace(/-/g,'\\-')).join('|')+')\\b');
+  const seen=new Set(),walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement.closest('abbr,a,button,summary,script,code,.kick,h1')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
+  const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+  nodes.forEach(nd=>{let txt=nd.nodeValue,m,frag=null,last=0;const g=new RegExp(re.source,'g');
+    while((m=g.exec(txt))){if(seen.has(m[1]))continue;seen.add(m[1]);frag=frag||document.createDocumentFragment();frag.appendChild(document.createTextNode(txt.slice(last,m.index)));const ab=document.createElement('abbr');ab.title=ABBR_MAP[m[1]];ab.textContent=m[1];ab.tabIndex=0;frag.appendChild(ab);last=m.index+m[1].length}
+    if(frag){frag.appendChild(document.createTextNode(txt.slice(last)));nd.parentNode.replaceChild(frag,nd)}});
+}
+function wireAbbr(){
+  const q=$('#abbrQ');q.oninput=()=>{abbrQ=q.value;$('#abbrBox').innerHTML=abbrTable()};
+  view.querySelectorAll('[data-acat]').forEach(b=>b.onclick=()=>{abbrCat=b.dataset.acat;view.querySelectorAll('[data-acat]').forEach(x=>x.classList.toggle('on',x===b));$('#abbrBox').innerHTML=abbrTable()});
+}
+
 /* ---------- router ---------- */
 function route(){
   const h=decodeURIComponent(location.hash.slice(1))||'home';const cut=h.indexOf('/');const r=cut<0?h:h.slice(0,cut),arg=cut<0?'':h.slice(cut+1);
   if(r==='updates'){location.replace('#lesson/'+T.updatesLesson);return}
   if(r==='print'){location.replace('#home');return}
-  const fn={home,modules,lesson:()=>lesson(arg),workshops,exam,capstone,certificate,account,verify:()=>verify(arg),search:()=>search(arg)}[r]||home;
+  const fn={home,modules,lesson:()=>lesson(arg),workshops,cases:()=>cases(arg),abbr,exam,capstone,certificate,account,verify:()=>verify(arg),search:()=>search(arg)}[r]||home;
   view.innerHTML=fn();navOn(r==='lesson'&&arg===T.updatesLesson?'updates':r);bar();chrome();window.scrollTo(0,0);
   wireQuiz(view);flash();
   const d=$('#done');if(d)d.onclick=()=>{st.done[d.dataset.id]=1;save();const i=all.findIndex(l=>l.id===d.dataset.id);const nx=all[i+1];if(nx)location.hash='#lesson/'+nx.id;else route()};
   if(r==='exam'){if(EX&&!EX.done)wireOfficial();else{if($('#startx'))$('#startx').onclick=startPractice;if($('#offstart'))$('#offstart').onclick=officialStart}}
   if(r==='certificate')wireCert();
+  if(r==='cases')wireCases(arg);
+  if(r==='abbr')wireAbbr();
+  if(r==='lesson'||(r==='cases'&&arg))explainAbbr(view.querySelector('article.lesson'));
   if(r==='capstone')view.querySelectorAll('[data-cap]').forEach(b=>b.onchange=()=>{st.cap[b.dataset.cap]=b.checked;save();const h=b.closest('.card').querySelector('h3');const c=M.capstone.deliverables;h.textContent=`${t('deliverables')} · ${n(c.filter((_,i)=>st.cap[i]).length)}/${n(c.length)}`});
   if(r==='account')mountAccount();
   if(r==='verify'){$('#vForm').onsubmit=e=>{e.preventDefault();const v=$('#vId').value.trim();history.replaceState(null,'','#verify/'+encodeURIComponent(v));runVerify(v)};if(arg)runVerify(arg)}
-  document.title=(r==='lesson'&&all.find(l=>l.id===arg)?all.find(l=>l.id===arg).title+' · ':'')+M.full;
+  const cs=r==='cases'&&arg&&(T.cases||[]).find(c=>c.id===arg);
+  document.title=(r==='lesson'&&all.find(l=>l.id===arg)?all.find(l=>l.id===arg).title+' · ':cs?cs.title+' · ':'')+M.full;
 }
 addEventListener('hashchange',route);
 addEventListener('storage',e=>{if(e.key===AUTH_KEY){AUTH=(()=>{try{return JSON.parse(e.newValue||'null')}catch(x){return null}})();chrome();if(location.hash==='#account')route()}});

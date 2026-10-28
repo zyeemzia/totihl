@@ -121,6 +121,19 @@ input.txt{background:var(--card2);border:1px solid var(--line);color:var(--ink);
 footer.ft{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-size:13.5px;background:var(--bg2)}
 footer.ft .wrap{display:flex;gap:20px;flex-wrap:wrap;justify-content:space-between}
 mark{background:var(--gold);color:#000;border-radius:3px}
+abbr[title]{text-decoration:underline dotted var(--teal);text-underline-offset:3px;cursor:help}
+table.abbr th[scope=row]{white-space:nowrap;color:var(--acc2)}
+/* case lab */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+button.chip{cursor:pointer;color:var(--ink);font:inherit;font-size:13px}
+button.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.decide{margin:20px 0;border-color:var(--gold)}
+.decide button.o{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:var(--card2);color:var(--ink);cursor:pointer;font:inherit}
+.decide button.o.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 18%,var(--card))}
+.decide button.o.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 18%,var(--card))}
+.irac{display:grid;gap:10px;margin:12px 0}
+.irac>div{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--teal);border-radius:0 10px 10px 0;padding:10px 14px}
+.irac>div b.k{display:block;font:600 11px 'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:4px}
 /* account, exam bar, toast */
 .ib.acct{display:grid;place-items:center;overflow:hidden;text-decoration:none;padding:0}
 .ib.acct img{width:100%;height:100%;object-fit:cover}
