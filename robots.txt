@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://totihl.zyeemzia.com/sitemap.xml
